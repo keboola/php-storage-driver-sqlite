@@ -87,6 +87,16 @@ $result = $connectionManager->withLockedDatabase($projectId, $databaseName, func
 });
 ```
 
+### Workspace Transformations
+
+For detailed information about how workspace transformations work with long-running operations in Kubernetes environments, see [WORKSPACE_TRANSFORMATIONS.md](WORKSPACE_TRANSFORMATIONS.md).
+
+Key features:
+- Isolated workspace databases for transformations
+- No production locks during transformation execution
+- Efficient data loading/unloading using ATTACH DATABASE
+- Multi-pod safe with distributed locking
+
 ## Development
 
 ### Running Tests

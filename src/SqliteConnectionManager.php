@@ -268,4 +268,64 @@ class SqliteConnectionManager
         $this->syncDatabaseToCloud($projectId, $databaseName);
         return $result;
     }
+
+    public function copyTable(
+        string $sourceProjectId,
+        string $sourceDatabaseName,
+        string $sourceTableName,
+        string $targetProjectId,
+        string $targetDatabaseName,
+        string $targetTableName,
+        bool $replaceIfExists = true
+    ): void {
+        $sourceDb = $this->getLocalDatabasePath($sourceProjectId, $sourceDatabaseName);
+        
+        if ($this->cloudStorage !== null && !file_exists($sourceDb)) {
+            $this->syncFromCloud($sourceProjectId, $sourceDatabaseName);
+        }
+        
+        if (!file_exists($sourceDb)) {
+            throw new RuntimeException(
+                sprintf('Source database not found: %s/%s', $sourceProjectId, $sourceDatabaseName)
+            );
+        }
+
+        $targetConnection = $this->getConnection($targetProjectId, $targetDatabaseName);
+        
+        try {
+            $targetConnection->exec(sprintf('ATTACH DATABASE "%s" AS source', $sourceDb));
+            
+            if ($replaceIfExists) {
+                $targetConnection->exec(sprintf('DROP TABLE IF EXISTS "%s"', $targetTableName));
+            }
+            
+            $targetConnection->exec(sprintf(
+                'CREATE TABLE "%s" AS SELECT * FROM source."%s"',
+                $targetTableName,
+                $sourceTableName
+            ));
+            
+            $targetConnection->exec('DETACH DATABASE source');
+            
+            $this->syncDatabaseToCloud($targetProjectId, $targetDatabaseName);
+        } catch (\Exception $e) {
+            try {
+                $targetConnection->exec('DETACH DATABASE source');
+            } catch (\Exception $detachException) {
+            }
+            
+            throw new RuntimeException(
+                sprintf(
+                    'Failed to copy table %s.%s to %s.%s: %s',
+                    $sourceDatabaseName,
+                    $sourceTableName,
+                    $targetDatabaseName,
+                    $targetTableName,
+                    $e->getMessage()
+                ),
+                0,
+                $e
+            );
+        }
+    }
 }
