@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="Keboola Coding Standard">
+    <config name="installed_paths" value="../../keboola/coding-standard"/>
+    <rule ref="Keboola"/>
+    <file>src</file>
+    <file>tests</file>
+</ruleset>
