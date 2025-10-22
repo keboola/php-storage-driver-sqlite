@@ -15,14 +15,24 @@ use Psr\Log\NullLogger;
 class SqliteDriverClient implements ClientInterface
 {
     protected LoggerInterface $internalLogger;
+    
+    protected SqliteConnectionManager $connectionManager;
 
-    public function __construct(?LoggerInterface $internalLogger = null)
-    {
+    public function __construct(
+        ?string $storageRoot = null,
+        ?LoggerInterface $internalLogger = null
+    ) {
         if ($internalLogger === null) {
             $this->internalLogger = new NullLogger();
         } else {
             $this->internalLogger = $internalLogger;
         }
+        
+        if ($storageRoot === null) {
+            $storageRoot = sys_get_temp_dir() . '/keboola-sqlite-storage';
+        }
+        
+        $this->connectionManager = new SqliteConnectionManager($storageRoot);
     }
 
     /**
@@ -36,6 +46,7 @@ class SqliteDriverClient implements ClientInterface
     ): ?Message {
         $handler = HandlerFactory::create(
             $command,
+            $this->connectionManager,
             $this->internalLogger,
         );
 

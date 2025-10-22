@@ -24,29 +24,37 @@ use Keboola\StorageDriver\Command\Workspace\CreateWorkspaceCommand;
 use Keboola\StorageDriver\Command\Workspace\DropWorkspaceCommand;
 use Keboola\StorageDriver\Contract\Driver\Command\DriverCommandHandlerInterface;
 use Keboola\StorageDriver\Shared\Driver\Exception\CommandNotSupportedException;
+use Keboola\StorageDriver\Sqlite\Handler\Bucket\Create\CreateBucketHandler;
+use Keboola\StorageDriver\Sqlite\Handler\Bucket\Drop\DropBucketHandler;
+use Keboola\StorageDriver\Sqlite\Handler\Table\Create\CreateTableHandler;
+use Keboola\StorageDriver\Sqlite\Handler\Table\Drop\DropTableHandler;
+use Keboola\StorageDriver\Sqlite\Handler\Workspace\Create\CreateWorkspaceHandler;
+use Keboola\StorageDriver\Sqlite\Handler\Workspace\Drop\DropWorkspaceHandler;
+use Keboola\StorageDriver\Sqlite\SqliteConnectionManager;
 use Psr\Log\LoggerInterface;
 
 final class HandlerFactory
 {
     public static function create(
         Message $command,
+        SqliteConnectionManager $connectionManager,
         LoggerInterface $internalLogger,
     ): DriverCommandHandlerInterface {
         $handler = match ($command::class) {
+            CreateBucketCommand::class => new CreateBucketHandler($connectionManager),
+            DropBucketCommand::class => new DropBucketHandler($connectionManager),
+            CreateTableCommand::class => new CreateTableHandler($connectionManager),
+            DropTableCommand::class => new DropTableHandler($connectionManager),
+            CreateWorkspaceCommand::class => new CreateWorkspaceHandler($connectionManager),
+            DropWorkspaceCommand::class => new DropWorkspaceHandler($connectionManager),
             InitBackendCommand::class,
             RemoveBackendCommand::class,
             CreateProjectCommand::class,
             DropProjectCommand::class,
-            CreateBucketCommand::class,
-            DropBucketCommand::class,
-            CreateTableCommand::class,
-            DropTableCommand::class,
             AddColumnCommand::class,
             DropColumnCommand::class,
             TableImportFromFileCommand::class,
             PreviewTableCommand::class,
-            CreateWorkspaceCommand::class,
-            DropWorkspaceCommand::class,
             ObjectInfoCommand::class,
             CreateDevBranchCommand::class,
             DropDevBranchCommand::class => new EmptyHandler(),
