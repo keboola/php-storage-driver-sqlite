@@ -24,6 +24,7 @@
         "php": "^8.2",
         "ext-pdo": "*",
         "ext-sqlite3": "*",
+        "aws/aws-sdk-php": "^3.0",
         "google/protobuf": "^3.21",
         "keboola/php-datatypes": "^7.0",
         "keboola/storage-driver-common": "^7.8.0",
